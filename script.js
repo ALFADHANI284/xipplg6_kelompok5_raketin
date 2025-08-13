@@ -5,7 +5,42 @@
     console.log("EmailJS initialized successfully");
   } catch (error) {
     console.error("EmailJS initialization failed:", error);
-    alert("Sistem sedang mengalami gangguan. Silakan coba lagi nanti.");
+    // Membuat custom alert styling
+    const alertBox = document.createElement('div');
+    alertBox.style.position = 'fixed';
+    alertBox.style.top = '20px';
+    alertBox.style.right = '20px';
+    alertBox.style.backgroundColor = '#ff4444';
+    alertBox.style.color = 'white';
+    alertBox.style.padding = '15px 25px';
+    alertBox.style.borderRadius = '8px';
+    alertBox.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    alertBox.style.zIndex = '9999';
+    alertBox.style.fontFamily = 'Montserrat, sans-serif';
+    alertBox.style.fontSize = '16px';
+    alertBox.style.maxWidth = '300px';
+    alertBox.style.animation = 'fadeIn 0.3s, fadeOut 0.3s 2.7s';
+    alertBox.innerHTML = `
+      <div style="display: flex; align-items: center;">
+        <span style="margin-right: 10px; font-size: 20px;">❌</span>
+        <div>
+          <strong>Sistem Error</strong><br>
+          Sistem sedang mengalami gangguan. Silakan coba lagi nanti.
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(alertBox);
+    
+    // Hapus alert setelah 3 detik
+    setTimeout(() => {
+      alertBox.style.animation = 'fadeOut 0.3s';
+      setTimeout(() => {
+        if (document.body.contains(alertBox)) {
+          document.body.removeChild(alertBox);
+        }
+      }, 300);
+    }, 3000);
   }
 })();
 
@@ -65,6 +100,57 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// ============ CUSTOM ALERT FUNCTION ============
+function showAlert(message, type = 'error') {
+  // Hapus alert lama jika ada
+  const existingAlert = document.querySelector('.custom-alert');
+  if (existingAlert) {
+    existingAlert.remove();
+  }
+  
+  // Buat alert baru
+  const alertBox = document.createElement('div');
+  alertBox.className = 'custom-alert';
+  alertBox.style.position = 'fixed';
+  alertBox.style.top = '20px';
+  alertBox.style.right = '20px';
+  alertBox.style.backgroundColor = type === 'success' ? '#4CAF50' : '#ff4444';
+  alertBox.style.color = 'white';
+  alertBox.style.padding = '15px 25px';
+  alertBox.style.borderRadius = '8px';
+  alertBox.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+  alertBox.style.zIndex = '9999';
+  alertBox.style.fontFamily = 'Montserrat, sans-serif';
+  alertBox.style.fontSize = '16px';
+  alertBox.style.maxWidth = '300px';
+  alertBox.style.animation = 'fadeIn 0.3s, fadeOut 0.3s 2.7s';
+  alertBox.style.transition = 'opacity 0.3s';
+  
+  // Konten alert
+  const [emoji, title] = type === 'success' ? ['✅', 'Berhasil!'] : ['❌', 'Gagal!'];
+  alertBox.innerHTML = `
+    <div style="display: flex; align-items: center;">
+      <span style="margin-right: 10px; font-size: 20px;">${emoji}</span>
+      <div>
+        <strong>${title}</strong><br>
+        ${message}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(alertBox);
+  
+  // Hapus alert setelah 3 detik
+  setTimeout(() => {
+    alertBox.style.opacity = '0';
+    setTimeout(() => {
+      if (document.body.contains(alertBox)) {
+        document.body.removeChild(alertBox);
+      }
+    }, 300);
+  }, 3000);
+}
+
 // ============ FORM SUBMISSION + EMAILJS + WHATSAPP ============
 document.addEventListener('DOMContentLoaded', function() {
   const bookingForm = document.getElementById("bookingForm");
@@ -87,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Validasi sederhana
       if (!formData.name || !formData.email || !formData.court || !formData.date || !formData.timeStart || !formData.timeEnd) {
-        alert("Mohon lengkapi semua field yang wajib diisi!");
+        showAlert("Mohon lengkapi semua field yang wajib diisi!", "error");
         return;
       }
 
@@ -99,17 +185,17 @@ document.addEventListener('DOMContentLoaded', function() {
       selectedDate.setHours(0, 0, 0, 0); // Reset waktu untuk perbandingan
 
       if (selectedDate < today) {
-        alert("Tidak bisa booking untuk tanggal sebelum hari ini.");
+        showAlert("Tidak bisa booking untuk tanggal sebelum hari ini.", "error");
         return;
       }
 
-      // 2. Validasi durasi minimal 2 jam dan maksimal 24 jam
+      // 2. Validasi durasi minimal 1 jam dan maksimal 24 jam
       const startDateTime = new Date(`${formData.date}T${formData.timeStart}`);
       const endDateTime = new Date(`${formData.date}T${formData.timeEnd}`);
 
       // Pastikan jam selesai lebih dari jam mulai
       if (endDateTime <= startDateTime) {
-        alert("Jam selesai harus lebih dari jam mulai.");
+        showAlert("Jam selesai harus lebih dari jam mulai.", "error");
         return;
       }
 
@@ -117,13 +203,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const durationMs = endDateTime - startDateTime;
       const durationHours = durationMs / (1000 * 60 * 60);
 
-      if (durationHours < 2) {
-        alert("Minimal durasi booking adalah 2 jam.");
+      if (durationHours < 1) {
+        showAlert("Minimal durasi booking adalah 1 jam.", "error");
         return;
       }
 
       if (durationHours > 24) {
-        alert("Maksimal durasi booking adalah 24 jam.");
+        showAlert("Maksimal durasi booking adalah 24 jam.", "error");
         return;
       }
       // ============ AKHIR VALIDASI TAMBAHAN ============
@@ -185,8 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
           window.open(whatsappUrl, '_blank');
           
-          // Tampilkan alert setelah membuka WhatsApp
-          alert("✅ Booking berhasil! Cek email Anda untuk konfirmasi detail.");
+          // Tampilkan custom alert
+          showAlert("Booking berhasil! Cek email Anda untuk konfirmasi detail.", "success");
           
           // Reset form & kembalikan tombol
           form.reset();
@@ -199,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Gagal kirim email:", error);
         
         // Tampilkan pesan error lebih detail
-        let errorMessage = "❌ Gagal mengirim konfirmasi.";
+        let errorMessage = "Gagal mengirim konfirmasi.";
         if (error.text) {
           errorMessage += `\n${error.text}`;
         }
@@ -213,11 +299,35 @@ document.addEventListener('DOMContentLoaded', function() {
         
         errorMessage += "\nCoba lagi nanti.";
         
-        alert(errorMessage);
+        showAlert(errorMessage, "error");
         
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
       });
     });
+  }
+});
+
+// ============ SET MIN DATE FOR BOOKING ============
+document.addEventListener('DOMContentLoaded', function() {
+  const dateInput = document.getElementById('date');
+  
+  if (dateInput) {
+    // Dapatkan tanggal hari ini dalam format YYYY-MM-DD
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayFormatted = `${year}-${month}-${day}`;
+    
+    // Set atribut min untuk input tanggal
+    dateInput.setAttribute('min', todayFormatted);
+    
+    // Opsional: Set tanggal default ke hari ini
+    if (!dateInput.value) {
+      dateInput.value = todayFormatted;
+    }
+    
+    console.log("Tanggal minimum diatur ke:", todayFormatted);
   }
 });
